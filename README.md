@@ -1,5 +1,5 @@
 # NGS-Variant-Discovery-Pipeline-GATK
-## Workflow inprogress
+## Note - Workflow inprogress
 
 This repository demonstrates a real-world, end-to-end NGS variant analysis pipeline, starting from raw sequencing reads to align, preprocess, discover variants, filter quality, annotate functionality, and validate results.
 

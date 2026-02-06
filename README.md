@@ -25,7 +25,7 @@ The final output is a curated set of variants that represent true genetic differ
 ---
 This specific workflow and related material provided by the SIB Swiss Institute of Bioinformatics ( [NGS Variant Analysis](https://sib-swiss.github.io/NGS-variants-training/2024.9/) ), and all steps are executed in a reproducible manner using scripted workflows and controlled software environments.
 
-## Setup
+## Setup and Environment Preparation
 Complete workflow performed on linux based system. All required bioinformatics tools were installed using conda. All analyses were performed in a controlled software environment to ensure reproducibility.
 
 Created `environment.yml` file
@@ -59,6 +59,7 @@ cd script
   mkdir A-prepare_references B-mother_only C-all_samples
 ```
 
+<!--
 ├── data
 
 │   ├── fastq
@@ -291,3 +292,15 @@ cd script
     │   ├── C17_evaluate_concordance_before_filtering.sh
     │   └── C18_annotate_snpEff.sh
     └── calculate_genotype_likelihoods.R
+-->
+
+## Input Data
+In this analysis, the input data used, which is publicly provided sequencing data, supplied as part of the SIB NGS Variant Analysis training workflow. The dataset consists of raw paired-end sequencing reads (FASTQ format) along with the corresponding reference genome required for alignment and variant discovery.
+
+Data downloaded using wget command
+```
+wget https://ngs-variants-training.s3.eu-central-1.amazonaws.com/ngs-variants-training.tar.gz
+tar -xvf ngs-variants-training.tar.gz
+```
+Required commands stored in script `A01_download_course_data.sh`
+

@@ -1,0 +1,12 @@
+name: ngs-tools
+channels:
+  - defaults
+dependencies:
+  - samtools=1.12
+  - bwa=0.7.17
+  - r-base
+  - snpeff=5.0
+  - gatk4=4.2.6
+  - python=3.8
+  - bcftools
+prefix: /root/miniconda3/envs/ngs-tools

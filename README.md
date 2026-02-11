@@ -295,7 +295,7 @@ cd script
 -->
 
 ## Input Data
-In this analysis, the input data used, which is publicly provided sequencing data, supplied as part of the SIB NGS Variant Analysis training workflow. The dataset consists of raw paired-end sequencing reads (FASTQ format) along with the corresponding reference genome required for alignment and variant discovery.
+In this analysis, the input data used, provided in training itself, as part of the SIB NGS Variant Analysis training workflow. The dataset consists of raw paired-end sequencing reads (FASTQ format) along with the corresponding reference genome required for alignment and variant discovery.
 
 Data downloaded using wget command
 ```
@@ -303,4 +303,25 @@ wget https://ngs-variants-training.s3.eu-central-1.amazonaws.com/ngs-variants-tr
 tar -xvf ngs-variants-training.tar.gz
 ```
 Required commands stored in script `A01_download_course_data.sh`
+
+Data included: 
+1. Raw sequencing reads (.fastq / .fastq.gz)
+2. Reference genome (.fa)
+3. Known variant resources used for preprocessing (.vcf)
+
+Due to the file size limitation, these datasets not uploaded on repository. You can obtain full datasets from the original training source: https://sib-swiss.github.io/NGS-variants-training
+
+## Indexing Reference genome
+Before read alignment and variant calling, the reference genome must be indexed. Indexing allows bioinformatics tools to quickly access specific genomic regions without scanning the entire genome file. And that's make it time and memory efficient.
+
+Software bwa, used for indexing.
+```
+bwa index Homo_sapiens.GRCh38.dna.chromosome.20.fa
+```
+Commands stored in scripts `A02_create_bwa_index.sh`
+
+## Read Alignment
+
+
+
 

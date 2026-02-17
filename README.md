@@ -321,7 +321,16 @@ bwa index Homo_sapiens.GRCh38.dna.chromosome.20.fa
 Commands stored in scripts `A02_create_bwa_index.sh`
 
 ## Read Alignment
+Read alignment is the process of mapping short sequencing reads to a reference genome to determine their genomic origin. Since next-generation sequencing produces millions of short DNA fragments, accurate alignment is essential for reliable variant detection. In this workflow, paired-end sequencing reads are aligned to the reference genome using BWA-MEM, a widely used algorithm optimized for high-throughput short reads. So it will generate an alignment file that can be used for downstream variant analysis.
 
+Paired-end FASTQ files were aligned to the indexed reference genome as follows:
+```
+bwa mem \
+  reference.fa \
+  sample_R1.fastq.gz \
+  sample_R2.fastq.gz > sample.sam
+```
+First we applies this on mother samples. The respective script stored in `B01_alignment.sh` and the results stored in folder results/alignments.
 
 
 

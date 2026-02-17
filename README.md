@@ -330,7 +330,15 @@ bwa mem \
   sample_R1.fastq.gz \
   sample_R2.fastq.gz > sample.sam
 ```
-First we applies this on mother samples. The respective script stored in `B01_alignment.sh` and the results stored in folder results/alignments.
+First we applied this on mother samples only. The respective script stored in `B01_alignment.sh` and the results stored in folder `results/alignments/`.
 
+## Alignment Statistics
+After read alignment, basic alignment statistics were generated to assess the quality and reliability of the mapping. These metrics help verify that the sequencing reads were correctly aligned to the reference genome before proceeding to variant calling. Evaluating alignment statistics at this stage is critical, as poor alignment quality directly affects downstream variant detection.
+
+Alignment statistics were generated using `samtools flagstat`
+```
+samtools flagstat mother.sam > mother.sam.flagstat
+```
+Script > `B02_get_alignment_statistics.sh`, Results in `results/alignments/` 
 
 

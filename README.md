@@ -522,3 +522,10 @@ Alignment statistics obtained of duplicate marked file using `samtools flagstat`
 Here you can see the number of duplicate reads.
 
 ## Indexing bam file
+After marking duplicate reads, the BAM file must be indexed to allow efficient access to specific genomic regions. Indexing creates a companion index file that enables downstream tools to quickly retrieve alignments without scanning the entire BAM file. Most variant analysis and visualization tools require an indexed BAM file as input.
+
+The BAM file was indexed using `samtools`. Refer script > `B08_index_alignment.sh` 
+```
+samtools index bam file
+```
+`.bai ` an index file generated 

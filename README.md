@@ -535,4 +535,64 @@ mother.rg.md.bam.bai
 ```
 From fasta of a sample(we used mother sample first), we have an alignment file, which sorted, having read group and duplicate marking. Also obtained their index file. A perfect for variant call. So we will apply all these actions on other samples too, and obtain required files.  
 
-For ...
+To obtain bam file from fasta, `C01_alignment_sorting_compression.sh` script executed
+```
+for SAMPLE in mother father son
+do
+    bwa mem data/reference/Homo_sapiens.GRCh38.dna.chromosome.20.fa \
+    data/fastq/"$SAMPLE"_R1.fastq.gz \
+    data/fastq/"$SAMPLE"_R2.fastq.gz \
+    | samtools sort \
+    | samtools view -bh > results/alignments/"$SAMPLE".bam
+done
+```
+To add read groups in each bam file, automated workflow used, documented in `C02_add_readgroups.sh`. `sample_rg_fields.txt` used as a input file.
+```
+~/ngs_course# cat results/sample_rg_fields.txt
+mother  lib1    H0164.2.ALXX140820      H0164.2.mother
+father  lib2    H0164.3.ALXX140820      H0164.3.father
+son     lib3    H0164.6.ALXX140820      H0164.6.son
+```
+```
+cat sample_rg_fields.txt | while read SAMPLE LB PU ID
+do
+    gatk AddOrReplaceReadGroups \
+    --INPUT alignments/"$SAMPLE".bam \
+    --OUTPUT alignments/"$SAMPLE".rg.bam \
+    --RGLB "$LB" \
+    --RGPU "$PU" \
+    --RGPL ILLUMINA \
+    --RGSM "$SAMPLE" \
+    --RGID "$ID"
+done 
+```
+
+Duplicates marked by executing `C03_mark_duplicates.sh` and index file of each bam file obtained by executing `C04_index_alignments.sh`.
+
+At the end, yo will see following files 
+```
+~/ngs_course# tree results/alignments/
+results/alignments/
+├── father.bam
+├── father.rg.bam
+├── father.rg.md.bam
+├── father.rg.md.bam.bai
+├── mark_dup_metrics_mother.txt
+├── marked_dup_metrics_father.txt
+├── marked_dup_metrics_mother.txt
+├── marked_dup_metrics_son.txt
+├── mother.bam
+├── mother.rg.bam
+├── mother.rg.md.bam
+├── mother.rg.md.bam.bai
+├── mother.rg.md.bam.flagstat
+├── mother.sam
+├── mother.sam.flagstat
+├── mother.sorted.sam
+├── son.bam
+├── son.rg.bam
+├── son.rg.md.bam
+└── son.rg.md.bam.bai
+
+```
+

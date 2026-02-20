@@ -526,6 +526,13 @@ After marking duplicate reads, the BAM file must be indexed to allow efficient a
 
 The BAM file was indexed using `samtools`. Refer script > `B08_index_alignment.sh` 
 ```
-samtools index bam file
+samtools index bam-file
 ```
-`.bai ` an index file generated 
+`.bai ` an index file generated.
+```
+mother.rg.md.bam
+mother.rg.md.bam.bai
+```
+From fasta of a sample(we used mother sample first), we have an alignment file, which sorted, having read group and duplicate marking. Also obtained their index file. A perfect for variant call. So we will apply all these actions on other samples too, and obtain required files.  
+
+For ...

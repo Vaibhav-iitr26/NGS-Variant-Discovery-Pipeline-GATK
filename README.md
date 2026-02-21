@@ -577,7 +577,6 @@ results/alignments/
 ├── father.rg.bam
 ├── father.rg.md.bam
 ├── father.rg.md.bam.bai
-├── mark_dup_metrics_mother.txt
 ├── marked_dup_metrics_father.txt
 ├── marked_dup_metrics_mother.txt
 ├── marked_dup_metrics_son.txt
@@ -596,3 +595,34 @@ results/alignments/
 
 ```
 
+## Variant Calling Preparation: Indexing Files
+Before variant calling, all required input files must be properly indexed. GATK relies on these index files to efficiently access genomic regions and perform statistical modeling during variant discovery. If any required index is missing or inconsistent, GATK will fail or produce incorrect results. We need index files of reference genome and known variant sites (VCF) (used for recalibration).
+
+Known variant sites are provided as compressed VCF files and must be indexed before use in base quality score recalibration.
+```
+gatk IndexFeatureFile --input variants/1000g_gold_standard.indels.filtered.vcf
+gatk IndexFeatureFile --input variants/GCF.38.filtered.renamed.vcf
+```
+Refer script `A03_create_vcf_indices.sh`
+
+Index file for reference obtained using : 
+```
+samtools faidx reference/Homo_sapiens.GRCh38.dna.chromosome.20.fa
+gatk CreateSequenceDictionary --REFERENCE reference/Homo_sapiens.GRCh38.dna.chromosome.20.fa
+```
+Refer script `A04_create_fasta_index.sh`
+
+
+```
+#Output
+data/reference/
+├── Homo_sapiens.GRCh38.dna.chromosome.20.dict
+├── Homo_sapiens.GRCh38.dna.chromosome.20.fa
+
+data/variants/
+├── 1000g_gold_standard.indels.filtered.vcf
+├── 1000g_gold_standard.indels.filtered.vcf.idx
+├── GCF.38.filtered.renamed.vcf
+├── GCF.38.filtered.renamed.vcf.idx
+
+```

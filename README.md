@@ -867,3 +867,61 @@ In the track with mother.phased.bam, right click on the reads and select Group a
 
 Now colour the reads by phase. Do that with by right clicking on the track and choose Colour alignments by > tag, and type in “HC” (that’s the tag where the phasing is stored). When the reads are colored by the HC tag (haplotype tag), one artificial haplotype read group shows no support from the original sequencing reads, which is actually representing homozygous reference allele. The remaining reads show consistent support for the alternate alleles of both SNPs on the same haplotype, meaning the two SNPs are in phase. This confirms that the variants are correctly phased and supported by the underlying sequencing data.
 
+## Hard Filtering
+After variant calling and joint genotyping, the resulting VCF contains both high-confidence variants and low-quality calls. Hard filtering is applied to remove variants that do not meet predefined quality thresholds. Hard filtering uses fixed cutoffs on variant quality metrics to distinguish reliable variants from likely false positives.
+
+The developers of gatk strongly advise to do Variant Quality Score Recalibration (VQSR) for filtering SNPs and INDELs. However, this is not always possible. For example, in the case of limited data availability and/or in the case you are working with non-model organisms and/or in the case you are a bit lazy and okay with a number of false positives. Our dataset is too small to apply VQSR. We will therefore do hard filtering instead.
+
+First, filtering thresholds are usually different for SNPs and INDELs. Therefore, we will split trio.vcf into two vcfs, one containg only SNPs, and one containing only INDELs. You can extract all the SNP records in our trio vcf like this:
+```
+gatk SelectVariants \
+--variant variants/trio.vcf \
+--select-type-to-include SNP \
+--output variants/trio.SNP.vcf
+```
+Refer scripts : `C09_select_SNPs.sh`, `C10_select_INDELs.sh`
+
+### Filtering SNPs
+The command gatk VariantFiltration enables you to filter for both the INFO field (per variant) and FORMAT field (per genotype). For now we’re only interested in filtering variants. Below you can find the command to hard-filter the SNP variants on some sensible thresholds.
+
+```
+gatk VariantFiltration \
+--variant variants/trio.SNP.vcf \
+--filter-expression "QD < 2.0"              --filter-name "QD2" \
+--filter-expression "QUAL < 30.0"           --filter-name "QUAL30" \
+--filter-expression "SOR > 3.0"             --filter-name "SOR3" \
+--filter-expression "FS > 60.0"             --filter-name "FS60" \
+--filter-expression "MQ < 40.0"             --filter-name "MQ40" \
+--filter-expression "MQRankSum < -12.5"     --filter-name "MQRankSum-12.5" \
+--filter-expression "ReadPosRankSum < -8.0" --filter-name "ReadPosRankSum-8" \
+--output variants/trio.SNP.filtered.vcf
+```
+Refer Script `C11_filter_SNPs.sh`
+
+### Filtering INDELs
+```
+gatk VariantFiltration \
+--variant trio.INDEL.vcf \
+--filter-expression "QD < 2.0"                  --filter-name "QD2" \
+--filter-expression "QUAL < 30.0"               --filter-name "QUAL30" \
+--filter-expression "FS > 200.0"                --filter-name "FS200" \
+--filter-expression "ReadPosRankSum < -20.0"    --filter-name "ReadPosRankSum-20" \
+--output trio.INDEL.filtered.vcf
+```
+Refer Script `C12_filter_INDELs.sh`
+
+### Merging filtered SNPs and INDELs
+```
+gatk MergeVcfs \
+--INPUT <input1.vcf> \
+--INPUT <input2.vcf> \
+--OUTPUT <merged.vcf>
+```
+Refer Script `C13_merge_filtered.sh`
+
+## Evaluation of Variant Calls by Concordance
+Concordance analysis is used to evaluate the quality of variant calls by comparing them against a reference variant set or an alternative callset. It measures how consistently variants are detected between two datasets.
+High concordance indicates reliable variant calling, while low concordance suggests potential issues in alignment, filtering, or variant calling steps.
+
+For this region we have a highly curated truth set for the mother available. It originates from the Illumina Platinum truth set. You can find it at data/variants/NA12878.vcf.gz
+

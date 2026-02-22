@@ -923,5 +923,98 @@ Refer Script `C13_merge_filtered.sh`
 Concordance analysis is used to evaluate the quality of variant calls by comparing them against a reference variant set or an alternative callset. It measures how consistently variants are detected between two datasets.
 High concordance indicates reliable variant calling, while low concordance suggests potential issues in alignment, filtering, or variant calling steps.
 
-For this region we have a highly curated truth set for the mother available. It originates from the Illumina Platinum truth set. You can find it at data/variants/NA12878.vcf.gz
+For this region we have a highly curated truth set for the mother available. It originates from the [Illumina Platinum truth set](https://www.illumina.com/platinumgenomes.html). You can find it at `data/variants/NA12878.vcf.gz`. To check how well we did, we’d first need to extract a vcf with only the information of the mother. Used `gatk SelectVariants` to exctact this information.
+```
+gatk SelectVariants \
+--variant trio.filtered.vcf \
+--sample-name mother \
+--exclude-non-variants \
+--remove-unused-alternates \
+--output mother.trio.filtered.vcf
+```
+Refer Script `C14_extract_mother_only.sh`
+Variant concordance was evaluated using `gatk Concordance`:
+```
+gatk Concordance \
+--evaluation results/variants/mother.trio.filtered.vcf \
+--truth data/variants/NA12878.vcf.gz \
+--intervals chr20:10018000-10220000 \
+--summary results/variants/concordance.mother.trio.filtered
+```
+```
+#Output
 
+less results/variants/concordance.mother.trio.filtered
+
+type    TP      FP      FN      RECALL  PRECISION
+SNP     319     5       9       0.973   0.985
+INDEL   63      20      6       0.913   0.759
+
+```
+For SNPs, the concordance is high, with a recall of 97.3% and precision of 98.5%, indicating that most true variants were correctly detected with very few false positives. This shows strong performance of the pipeline for SNP calling.For indels, recall (91.3%) is slightly lower and precision (75.9%) drops more noticeably. This reflects the known difficulty of accurately calling indels due to alignment ambiguity and sequencing artifacts. Overall, the results indicate high reliability for SNP detection and acceptable but noisier indel detection, which is consistent with expectations for short-read NGS data.
+
+Similarly, the concordance evaluated for variants called before filtering. Used `gatk SelectVariants` in order to get only variants from the mother from the unfiltered `trio.vcf`, refer script `C16_extract_mother_before_filtering.sh`. And concordance measured using `gatk Concordance`, refer script `C17_evaluate_concordance_before_filtering.sh`. 
+
+```
+#Output
+
+less results/variants/concordance.mother.trio.
+type    TP      FP      FN      RECALL  PRECISION
+SNP     319     7       9       0.973   0.979
+INDEL   63      20      6       0.913   0.759
+```
+The precision for SNPs is slightly lower before filtering. Hard filtering improved SNP quality by reducing false positives without losing true variants.
+
+## Variant Annotation
+Variant annotation is the process of adding biological context to the filtered variants. Annotation translates raw variant calls into biologically meaningful information by explaining where the variant is and what it might affect. It helps determine where a variant lies in the genome and what potential effect it may have on genes and proteins. 
+
+After hard filtering and evaluation, high-confidence variants were annotated to understand their functional impact.
+
+Variants were annotated using snpEff, a widely used tool for predicting variant effects based on genome annotations. We already included it in our environment.
+```
+snpEff -Xmx4g \
+-v \
+-dataDir /data/ \
+GRCh38.99 \
+trio.filtered.vcf \
+> trio.filtered.snpeff.vcf
+```
+It will generate html file, looks like 
+`snpEff_summary.html` saved in Annotation folder.
+
+<img width="1016" height="895" alt="Screenshot 2026-02-22 121214" src="https://github.com/user-attachments/assets/6a18f2bc-852c-4e5e-8010-33a0010ee8ec" />
+
+### Results Summary
+
+Using snpEff (GRCh38.99), a total of 576 filtered variants on chromosome 20 were functionally annotated. The majority of variants were SNPs (446), followed by insertions (65) and deletions (65). Most annotated effects were classified as MODIFIER (≈99.8%), indicating variants located in non-coding or regulatory regions. Only a small number of coding effects were observed, including 2 missense and 4 synonymous variants, resulting in a missense-to-silent ratio of 0.5.
+
+The transition/transversion (Ts/Tv) ratio of 1.81 is consistent with high-quality variant calls for human genomic data. Overall, the annotation results indicate a biologically plausible variant set dominated by non-coding variation, as expected for whole-genome sequencing of a healthy individual.
+
+---
+
+## Final Workflow Summary
+This project implements a complete end-to-end NGS germline variant analysis workflow, starting from raw sequencing reads and progressing through alignment, preprocessing, variant calling, filtering, evaluation, visualization, and functional annotation. Raw FASTQ reads were aligned to the GRCh38 reference genome, followed by duplicate marking, base quality score recalibration, and variant discovery using GATK HaplotypeCaller in GVCF mode. Joint genotyping was performed via GenomicsDB, and variant quality was improved through hard filtering and concordance-based evaluation. Variant calls were manually validated using IGV and functionally annotated using snpEff to assess biological impact. The pipeline produces a reproducible, high-confidence set of annotated variants suitable for downstream genomic interpretation.
+
+## Results Snapshot
+
+| Pipeline Step          | Output File                        | Key Results / Metrics                                    |
+| ---------------------- | ---------------------------------- | -------------------------------------------------------- |
+| Read Alignment         | `mother.bam`                       | High-quality, well-covered alignments on chr20           |
+| Duplicate Marking      | `mother.rg.md.bam`                 | PCR duplicates identified and marked                     |
+| BQSR                   | `mother.recal.bam`                 | Corrected base quality biases                            |
+| Variant Calling        | `mother.HC.vcf`                    | Variants detected using GATK HaplotypeCaller (GVCF mode) |
+| Joint Genotyping       | ` trio.vcf`                        | **576 total variants** on chromosome 20                  |
+| Variant Composition    | –                                  | **446 SNPs**, **65 insertions**, **65 deletions**        |
+| Hard Filtering         | `trio.filtered.vcf`                | Improved SNP precision (0.979 → **0.985**)               |
+| Concordance Evaluation | `concordance.mother.trio.filtered` | SNP recall **97.3%**, precision **98.5%**                |
+| Visualization (IGV)    | BAM + VCF tracks                   | Clear read support and correct phasing                   |
+| Annotation (snpEff)    | `snpEff_summary.html`              | Ts/Tv ratio **1.81**, mostly non-coding variants         |
+
+---
+
+## Acknowledgments
+
+This workflow is based on the NGS Variant Analysis training material provided by the SIB Swiss Institute of Bioinformatics.
+Publicly available reference data and open-source bioinformatics tools were used throughout the analysis.
+
+---
